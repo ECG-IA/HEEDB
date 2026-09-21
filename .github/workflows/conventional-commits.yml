@@ -1,0 +1,26 @@
+name: Conventional Commits
+
+on:
+  pull_request:
+    branches: [main, develop]
+    types: [opened, edited, synchronize, reopened, ready_for_review]
+  push:
+    branches: [main, develop]
+
+permissions:
+  contents: read
+
+jobs:
+  conventional:
+    name: Conventional Commits
+    runs-on: ubuntu-latest
+    steps:
+      - name: Obtener historial
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Probar el validador
+        run: python3 -m unittest discover -s tests -v
+      - name: Validar commits y título del PR
+        run: python3 scripts/check_conventional.py --event
