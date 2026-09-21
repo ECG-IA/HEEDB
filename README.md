@@ -17,6 +17,14 @@ python3 scripts/heedb.py download
 
 Al conectarte, abre el enlace que muestra AWS y pega el código de autorización en la terminal. El perfil predeterminado es `heedb`; puedes cambiarlo con `--profile NOMBRE` en ambos comandos.
 
+## Arquitectura de carpetas
+
+![Arquitectura de carpetas del punto de acceso BDSP y sección ECG](arquitectura-bdsp-heedb.png)
+
+[Ver o descargar el PNG](arquitectura-bdsp-heedb.png).
+
+El diagrama muestra una vista resumida del punto de acceso BDSP. Nuestro script descarga únicamente las tablas de `ECG/I0001/` (MGH) y `ECG/I0006/` (Emory). La carpeta `EEG/HEEDB_Metadata/` pertenece a otra sección y no forma parte de la descarga. Los puntos suspensivos y patrones representan contenido resumido; la imagen no es un inventario exhaustivo.
+
 ## Archivos descargados
 
 Cada hospital conserva las carpetas del origen en S3:
