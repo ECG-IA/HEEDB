@@ -79,6 +79,10 @@ Sustituye `I0001` por `I0006` para Emory y `12SL_diagnoses` por `metadata` o `IC
 
 Todos los archivos descargados permanecen locales y están excluidos de Git. La licencia del repositorio aplica al código, no concede derechos sobre los datos.
 
+## Recuperar un archivo de credenciales inválido
+
+Si AWS muestra `Unable to parse config file` para `~/.aws/credentials`, consulta la [guía de comandos en PNG](comandos-recuperar-aws.png). Está dirigida a WSL y conserva el archivo como respaldo antes de repetir el inicio de sesión. Apartar ese archivo afecta a los perfiles que dependían de sus claves; no es un paso necesario para una instalación que ya funciona.
+
 ## Commits y pull requests
 
 Los commits nuevos y títulos de PR deben cumplir [Conventional Commits](CONTRIBUTING.md), por ejemplo `feat(metadata): añade tablas ICD`. Activa el hook local con `git config core.hooksPath .githooks`. GitHub Actions valida los mensajes; el bloqueo obligatorio de fusiones está pendiente de habilitar protecciones para este repositorio privado en el plan de GitHub.
