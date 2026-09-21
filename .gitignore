@@ -1,0 +1,36 @@
+# Datos del proveedor y artefactos derivados: nunca versionar su contenido.
+/metadatos/
+/diagnosticos/
+/senales/
+/cohortes/
+/procesados/
+/resultados/
+/data/
+/datasets/
+*.csv
+*.tsv
+*.parquet
+*.arrow
+*.feather
+*.hea
+*.dat
+*.mat
+*.edf
+*.h5
+*.hdf5
+*.npy
+*.npz
+*.zip
+*.tar
+*.gz
+*.ipynb
+# Credenciales, entornos y cachés
+.aws/
+.env
+.env.*
+!.env.example
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
