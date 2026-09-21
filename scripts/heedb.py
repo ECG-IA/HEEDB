@@ -7,7 +7,14 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-CONFIG = ROOT / "config" / "dataset.json"
+# Referencia consultada en S3; no contiene datos de pacientes.
+CONFIG = {'verified_on': '2026-09-21',
+ 'region': 'us-east-1',
+ 'access_point': 'arn:aws:s3:us-east-1:184438910517:accesspoint/bdsp-credentialed-access-point-1',
+ 'sources': {'MGH': {'prefix': 'ECG/I0001/metadata/',
+                     'files': {'README': 2243, 'metadata.csv': 3088357398}},
+             'Emory': {'prefix': 'ECG/I0006/metadata/',
+                       'files': {'README': 940, 'metadata.csv': 169535260}}}}
 
 
 def aws(args, config, profile):
@@ -27,16 +34,13 @@ def inventory(config, profile, source):
 
 def check_inventory(actual, expected):
     if actual != expected:
-        raise ValueError("El inventario remoto cambió respecto de config/dataset.json. "
+        raise ValueError("El inventario remoto cambió respecto de la referencia del script. "
                          "Revisar nombres y tamaños antes de actualizar la referencia.")
 
 
 def initialize(root):
-    for folder in ("metadatos", "diagnosticos", "senales"):
-        for source in ("MGH", "Emory"):
-            (root / folder / source).mkdir(parents=True, exist_ok=True)
-    for folder in ("cohortes", "procesados", "resultados", "notebooks"):
-        (root / folder).mkdir(parents=True, exist_ok=True)
+    for source in ("MGH", "Emory"):
+        (root / "metadatos" / source).mkdir(parents=True, exist_ok=True)
 
 
 def verify(root, sources):
@@ -64,7 +68,7 @@ def main():
     args = parser.parse_args()
     if args.dry_run and args.command != "download":
         parser.error("--dry-run solo se admite con download")
-    config = json.loads(CONFIG.read_text())
+    config = CONFIG
     sources = {k: v for k, v in config["sources"].items()
                if args.source == "all" or k == args.source}
     root = args.root.expanduser().resolve()
