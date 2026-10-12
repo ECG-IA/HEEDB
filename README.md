@@ -19,17 +19,17 @@ Al conectarte, abre el enlace que muestra AWS y pega el código de autorización
 
 ## Arquitectura de carpetas
 
-![Arquitectura de carpetas del punto de acceso BDSP y sección ECG](arquitectura-bdsp-heedb.png)
+![Arquitectura de carpetas del punto de acceso BDSP y sección ECG](assets/arquitectura-bdsp-heedb.png)
 
-[Ver o descargar el PNG](arquitectura-bdsp-heedb.png).
+[Ver o descargar el PNG](assets/arquitectura-bdsp-heedb.png).
 
 El diagrama muestra una vista resumida del punto de acceso BDSP. Nuestro script descarga únicamente las tablas de `ECG/I0001/` (MGH) y `ECG/I0006/` (Emory). La carpeta `EEG/HEEDB_Metadata/` pertenece a otra sección y no forma parte de la descarga. Los puntos suspensivos y patrones representan contenido resumido; la imagen no es un inventario exhaustivo.
 
 ## Arquitectura específica de ECG
 
-![Arquitectura de la sección ECG de HEEDB](arquitectura-ecg-heedb.png)
+![Arquitectura de la sección ECG de HEEDB](assets/arquitectura-ecg-heedb.png)
 
-[Ver o descargar el PNG](arquitectura-ecg-heedb.png).
+[Ver o descargar el PNG](assets/arquitectura-ecg-heedb.png).
 
 Las cantidades documentadas en los metadatos de cada fuente son:
 
@@ -101,7 +101,7 @@ Todos los archivos descargados permanecen locales y están excluidos de Git. La 
 
 ## Recuperar un archivo de credenciales inválido
 
-Si AWS muestra `Unable to parse config file` para `~/.aws/credentials`, consulta la [guía de comandos en PNG](comandos-recuperar-aws.png). Está dirigida a WSL y conserva el archivo como respaldo antes de repetir el inicio de sesión. Apartar ese archivo afecta a los perfiles que dependían de sus claves; no es un paso necesario para una instalación que ya funciona.
+Si AWS muestra `Unable to parse config file` para `~/.aws/credentials`, consulta la [guía de comandos en PNG](assets/comandos-recuperar-aws.png). Está dirigida a WSL y conserva el archivo como respaldo antes de repetir el inicio de sesión. Apartar ese archivo afecta a los perfiles que dependían de sus claves; no es un paso necesario para una instalación que ya funciona.
 
 ## Commits y pull requests
 
