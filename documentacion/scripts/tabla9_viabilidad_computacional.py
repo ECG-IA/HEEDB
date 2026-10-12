@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-tabla8_viabilidad_computacional.py
+tabla9_viabilidad_computacional.py
 ==================================
-Módulo de reproducibilidad para la Tabla 8 del documento técnico:
+Módulo de reproducibilidad para la Tabla 9 del documento técnico:
 'arquitectura_datos_heedb.tex' (Etiqueta: tab:viabilidad).
 
 Título de la Tabla:

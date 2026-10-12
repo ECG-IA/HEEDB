@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-tabla3_distribucion_codigos_multietiqueta.py
+tabla4_distribucion_codigos_multietiqueta.py
 ============================================
-Módulo de reproducibilidad para la Tabla 3 del documento técnico:
+Módulo de reproducibilidad para la Tabla 4 del documento técnico:
 'arquitectura_datos_heedb.tex' (Etiqueta: tab:code_dist).
 
 Objetivo y Justificación Clínica / Metodológica:
@@ -105,7 +105,7 @@ def calcular_distribucion_codigos(path_acq: Path) -> Tuple[Counter, int]:
 def main() -> None:
     """Función principal: calcula la distribución y computa la proporción multietiqueta."""
     print("=" * 85)
-    print("CÁLCULO DE TABLA 3: DISTRIBUCIÓN DE CANTIDAD DE CÓDIGOS SIMULTÁNEOS (HEEDB)")
+    print("CÁLCULO DE TABLA 4: DISTRIBUCIÓN DE CANTIDAD DE CÓDIGOS SIMULTÁNEOS (HEEDB)")
     print("Documento asociado: arquitectura_datos_heedb.tex | Etiqueta: tab:code_dist")
     print("=" * 85)
 

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-tabla7_remuestreo_antialiasing.py
+tabla8_remuestreo_antialiasing.py
 =================================
-Módulo de reproducibilidad para la Tabla 7 del documento técnico:
+Módulo de reproducibilidad para la Tabla 8 del documento técnico:
 'arquitectura_datos_heedb.tex' (Etiqueta: tab:remuestreo).
 
 Título de la Tabla:

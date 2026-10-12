@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-tabla4_concurrencia_ritmo_bloqueos.py
+tabla5_concurrencia_ritmo_bloqueos.py
 =====================================
-Módulo de reproducibilidad para la Tabla 4 del documento técnico:
+Módulo de reproducibilidad para la Tabla 5 del documento técnico:
 'arquitectura_datos_heedb.tex' (Etiqueta: tab:coocurrencia_bloqueos).
 
 Objetivo y Justificación Fisiológica:
@@ -107,7 +107,7 @@ def calcular_concurrencias(
 def main() -> None:
     """Función principal: calcula la concurrencia ritmo + bloqueos en ambos hospitales."""
     print("=" * 95)
-    print("CÁLCULO DE TABLA 4: CONCURRENCIA DE RITMO DE BASE CON BLOQUEOS (HEEDB)")
+    print("CÁLCULO DE TABLA 5: CONCURRENCIA DE RITMO DE BASE CON BLOQUEOS (HEEDB)")
     print("Documento asociado: arquitectura_datos_heedb.tex | Etiqueta: tab:coocurrencia_bloqueos")
     print("=" * 95)
 

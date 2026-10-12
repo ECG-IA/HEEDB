@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-tabla6_coexistencia_patologias_duales.py
+tabla7_coexistencia_patologias_duales.py
 =======================================
-Módulo de reproducibilidad para la Tabla 6 del documento técnico:
+Módulo de reproducibilidad para la Tabla 7 del documento técnico:
 'arquitectura_datos_heedb.tex' (Etiqueta: tab:coocurrencia_duales).
 
 Objetivo y Justificación Fisiológica:
@@ -105,7 +105,7 @@ def calcular_concurrencias(
 def main() -> None:
     """Función principal: calcula la coexistencia dual para Emory y MGH."""
     print("=" * 95)
-    print("CÁLCULO DE TABLA 6: COEXISTENCIA DUAL DE PATOLOGÍAS CONCOMITANTES (HEEDB)")
+    print("CÁLCULO DE TABLA 7: COEXISTENCIA DUAL DE PATOLOGÍAS CONCOMITANTES (HEEDB)")
     print("Documento asociado: arquitectura_datos_heedb.tex | Etiqueta: tab:coocurrencia_duales")
     print("=" * 95)
 

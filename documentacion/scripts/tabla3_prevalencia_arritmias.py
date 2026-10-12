@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-tabla2_prevalencia_arritmias.py
+tabla3_prevalencia_arritmias.py
 ===============================
-Módulo de reproducibilidad para la Tabla 2 del documento técnico:
+Módulo de reproducibilidad para la Tabla 3 del documento técnico:
 'arquitectura_datos_heedb.tex' (Etiqueta: tab:arritmias).
 
 Objetivo y Justificación Clínica:
@@ -135,7 +135,7 @@ def procesar_cohorte(path_acq: Path) -> Tuple[Counter, int]:
 def main() -> None:
     """Función principal: calcula y tabula las prevalencias para Emory y MGH."""
     print("=" * 95)
-    print("CÁLCULO DE TABLA 2: PREVALENCIA DE ARRITMIAS POR EJE FISIOLÓGICO (HEEDB)")
+    print("CÁLCULO DE TABLA 3: PREVALENCIA DE ARRITMIAS POR EJE FISIOLÓGICO (HEEDB)")
     print("Documento asociado: arquitectura_datos_heedb.tex | Etiqueta: tab:arritmias")
     print("=" * 95)
 

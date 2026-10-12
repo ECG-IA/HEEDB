@@ -10,13 +10,14 @@ Esta carpeta contiene los scripts en Python utilizados para extraer, calcular y 
 | Tabla en LaTeX | Etiqueta (`\label`) | Script Asociado | Descripción / Contenido |
 | :--- | :--- | :--- | :--- |
 | **Tabla 1** | `tab:cobertura` | [`tabla1_cobertura_medica.py`](tabla1_cobertura_medica.py) | Cobertura de sobrelectura médica experta (`codes_physician`). |
-| **Tabla 2** | `tab:arritmias` | [`tabla2_prevalencia_arritmias.py`](tabla2_prevalencia_arritmias.py) | Prevalencia de las 12 clases de arritmia agrupadas en 3 ejes electrofisiológicos. |
-| **Tabla 3** | `tab:code_dist` | [`tabla3_distribucion_codigos_multietiqueta.py`](tabla3_distribucion_codigos_multietiqueta.py) | Conteo de códigos de diagnóstico simultáneos por trazado ($1$ a $>5$, y $\ge 2$). |
-| **Tabla 4** | `tab:coocurrencia_bloqueos` | [`tabla4_concurrencia_ritmo_bloqueos.py`](tabla4_concurrencia_ritmo_bloqueos.py) | Concurrencia de ritmo de base con bloqueos de conducción (NSR+RBBB, NSR+LBBB, NSR+1AVB, AFIB+RBBB). |
-| **Tabla 5** | `tab:coocurrencia_ectopias` | [`tabla5_concurrencia_ritmo_ectopias.py`](tabla5_concurrencia_ritmo_ectopias.py) | Concurrencia de ritmo de base con focos ectópicos prematuros (NSR+PVC, NSR+PAC, AFIB+PVC). |
-| **Tabla 6** | `tab:coocurrencia_duales` | [`tabla6_coexistencia_patologias_duales.py`](tabla6_coexistencia_patologias_duales.py) | Coexistencia dual de patologías concomitantes (1AVB+RBBB bifascicular, PAC+PVC doble ectopia). |
-| **Tabla 7** | `tab:remuestreo` | [`tabla7_remuestreo_antialiasing.py`](tabla7_remuestreo_antialiasing.py) | Homologación de dimensiones (500 vs 250 Hz), teorema de Nyquist y filtro antialiasing. |
-| **Tabla 8** | `tab:viabilidad` | [`tabla8_viabilidad_computacional.py`](tabla8_viabilidad_computacional.py) | Consumo de RAM (120 KB/estudio), 4 escenarios (1.39 TB a 480 MB) y generador *lazy loading*. |
+| **Tabla 2** | `tab:demografia` | [`tabla2_perfil_demografico.py`](tabla2_perfil_demografico.py) | Perfil demográfico, distribución por sexo, diversidad racial y composición etaria. |
+| **Tabla 3** | `tab:arritmias` | [`tabla3_prevalencia_arritmias.py`](tabla3_prevalencia_arritmias.py) | Prevalencia de las 12 clases de arritmia agrupadas en 3 ejes electrofisiológicos. |
+| **Tabla 4** | `tab:code_dist` | [`tabla4_distribucion_codigos_multietiqueta.py`](tabla4_distribucion_codigos_multietiqueta.py) | Conteo de códigos de diagnóstico simultáneos por trazado ($1$ a $>5$, y $\ge 2$). |
+| **Tabla 5** | `tab:coocurrencia_bloqueos` | [`tabla5_concurrencia_ritmo_bloqueos.py`](tabla5_concurrencia_ritmo_bloqueos.py) | Concurrencia de ritmo de base con bloqueos de conducción (NSR+RBBB, NSR+LBBB, NSR+1AVB, AFIB+RBBB). |
+| **Tabla 6** | `tab:coocurrencia_ectopias` | [`tabla6_concurrencia_ritmo_ectopias.py`](tabla6_concurrencia_ritmo_ectopias.py) | Concurrencia de ritmo de base con focos ectópicos prematuros (NSR+PVC, NSR+PAC, AFIB+PVC). |
+| **Tabla 7** | `tab:coocurrencia_duales` | [`tabla7_coexistencia_patologias_duales.py`](tabla7_coexistencia_patologias_duales.py) | Coexistencia dual de patologías concomitantes (1AVB+RBBB bifascicular, PAC+PVC doble ectopia). |
+| **Tabla 8** | `tab:remuestreo` | [`tabla8_remuestreo_antialiasing.py`](tabla8_remuestreo_antialiasing.py) | Homologación de dimensiones (500 vs 250 Hz), teorema de Nyquist y filtro antialiasing. |
+| **Tabla 9** | `tab:viabilidad` | [`tabla9_viabilidad_computacional.py`](tabla9_viabilidad_computacional.py) | Consumo de RAM (120 KB/estudio), 4 escenarios (1.39 TB a 480 MB) y generador *lazy loading*. |
 
 ---
 
@@ -26,22 +27,23 @@ Esta carpeta contiene los scripts en Python utilizados para extraer, calcular y 
 Para verificar una tabla individual, ejecuta el script correspondiente:
 ```bash
 python3 documentacion/scripts/tabla1_cobertura_medica.py
-python3 documentacion/scripts/tabla2_prevalencia_arritmias.py
-python3 documentacion/scripts/tabla3_distribucion_codigos_multietiqueta.py
-python3 documentacion/scripts/tabla4_concurrencia_ritmo_bloqueos.py
-python3 documentacion/scripts/tabla5_concurrencia_ritmo_ectopias.py
-python3 documentacion/scripts/tabla6_coexistencia_patologias_duales.py
-python3 documentacion/scripts/tabla7_remuestreo_antialiasing.py
-python3 documentacion/scripts/tabla8_viabilidad_computacional.py
+python3 documentacion/scripts/tabla2_perfil_demografico.py
+python3 documentacion/scripts/tabla3_prevalencia_arritmias.py
+python3 documentacion/scripts/tabla4_distribucion_codigos_multietiqueta.py
+python3 documentacion/scripts/tabla5_concurrencia_ritmo_bloqueos.py
+python3 documentacion/scripts/tabla6_concurrencia_ritmo_ectopias.py
+python3 documentacion/scripts/tabla7_coexistencia_patologias_duales.py
+python3 documentacion/scripts/tabla8_remuestreo_antialiasing.py
+python3 documentacion/scripts/tabla9_viabilidad_computacional.py
 ```
 
 ### 2. Ejecutar todas las tablas con el script maestro
 ```bash
-# Ejecutar todas las tablas secuencialmente (1 a 8):
+# Ejecutar todas las tablas secuencialmente (1 a 9):
 python3 documentacion/scripts/generar_todas_las_tablas.py
 
 # O ejecutar una tabla específica mediante el flag --tabla:
-python3 documentacion/scripts/generar_todas_las_tablas.py --tabla 7
+python3 documentacion/scripts/generar_todas_las_tablas.py --tabla 2
 python3 documentacion/scripts/generar_todas_las_tablas.py --tabla 8
 ```
 
@@ -51,7 +53,7 @@ python3 documentacion/scripts/generar_todas_las_tablas.py --tabla 8
 Todos los scripts leen directamente los archivos originales del repositorio local:
 - `metadatos/{Emory,MGH}/12SL_diagnoses/diagnoses_acquisition.csv` (columna `codes_physician`).
 - `metadatos/{Emory,MGH}/12SL_diagnoses/diagnoses_dictionary.csv` (traducción ontológica).
-- `metadatos/{Emory,MGH}/metadata/metadata.csv` (demografía y registro general).
+- `metadatos/{Emory,MGH}/metadata/metadata.csv` (demografía, sexo, edad y registro general).
 
 ---
 

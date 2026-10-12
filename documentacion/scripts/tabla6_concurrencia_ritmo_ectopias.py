@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-tabla5_concurrencia_ritmo_ectopias.py
+tabla6_concurrencia_ritmo_ectopias.py
 ====================================
-Módulo de reproducibilidad para la Tabla 5 del documento técnico:
+Módulo de reproducibilidad para la Tabla 6 del documento técnico:
 'arquitectura_datos_heedb.tex' (Etiqueta: tab:coocurrencia_ectopias).
 
 Objetivo y Justificación Fisiológica:
@@ -104,7 +104,7 @@ def calcular_concurrencias(
 def main() -> None:
     """Función principal: calcula la concurrencia ritmo + ectopias en ambos hospitales."""
     print("=" * 95)
-    print("CÁLCULO DE TABLA 5: CONCURRENCIA DE RITMO DE BASE CON ECTOPIAS (HEEDB)")
+    print("CÁLCULO DE TABLA 6: CONCURRENCIA DE RITMO DE BASE CON ECTOPIAS (HEEDB)")
     print("Documento asociado: arquitectura_datos_heedb.tex | Etiqueta: tab:coocurrencia_ectopias")
     print("=" * 95)
 

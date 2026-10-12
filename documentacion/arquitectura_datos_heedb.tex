@@ -20,6 +20,7 @@
 \usepackage{titlesec}
 \usepackage{fancyhdr}
 \usepackage{caption}
+\usepackage{float}
 
 % --- Paleta de colores sobria e institucional ---
 \definecolor{primarynavy}{RGB}{15, 34, 64}      % Azul marino institucional
@@ -83,7 +84,7 @@
 }
 
 \title{\textbf{\LARGE Arquitectura Relacional y Análisis Estadístico de Metadatos de ECG en HEEDB}\\[0.25cm]
-\large Descripción de Archivos, Modelo Entidad-Relación y Distribución de Arritmias}
+\large Descripción de Archivos, Modelo Entidad-Relación, Perfil Demográfico y Distribución de Arritmias}
 \author{\textbf{Documentación Técnica de Datos y Análisis Exploratorio}}
 \date{Octubre de 2026}
 
@@ -96,7 +97,7 @@
 Este documento presenta la arquitectura relacional y el análisis exploratorio de metadatos de la base de datos \textit{Harvard-Emory ECG Database} (HEEDB), un repositorio clínico de escala masiva que reúne más de 11.6 millones de electrocardiogramas (ECG) de 12 derivaciones provenientes del \textit{Massachusetts General Hospital} (MGH) y de \textit{Emory Healthcare}. El trabajo se estructura en tres componentes clave:
 \begin{itemize}[topsep=2pt, itemsep=1.5pt, parsep=0pt]
     \item \textbf{Arquitectura Relacional y Catálogo de Datos}: Formalización de las tablas principales, claves de enlace e integridad referencial en un modelo Entidad-Relación modular para la trazabilidad completa del paciente.
-    \item \textbf{Evidencia Estadística y Enfoque Multietiqueta}: Análisis de prevalencias sobre 9.6 millones de estudios con supervisión médica, demostrando que el 98.6\% presenta diagnósticos compuestos y justificando el modelado multietiqueta.
+    \item \textbf{Evidencia Estadística y Enfoque Multietiqueta}: Caracterización demográfica de 2.17 millones de pacientes y análisis de prevalencias sobre 9.6 millones de estudios con supervisión médica, demostrando que el 98.6\% presenta diagnósticos compuestos y justificando el modelado multietiqueta.
     \item \textbf{Ingeniería de Señales, IA y Viabilidad Computacional}: Solución a la disparidad de muestreo mediante filtrado antialiasing a 250~Hz, aseguramiento de calidad asistido por IA y una estrategia escalonada (piloto de 100,000 trazos y carga por demanda).
 \end{itemize}
 \end{abstract}
@@ -265,7 +266,7 @@ Como refleja el diagrama, un mismo paciente acumula diversos trazados a lo largo
 \newpage
 
 % ==================== PÁGINA 4: SECCIÓN 4.1 Y TABLA 1 (COBERTURA Y CONCORDANCIA) ====================
-\section{Resumen Estadístico: Arritmias Identificadas por Hospital}
+\section{Resumen Estadístico: Demografía y Distribución de Arritmias}
 
 \subsection{Origen de los Datos y Criterio de Selección Médica}
 Para asegurar que los hallazgos reflejen con fidelidad el criterio clínico y no predicciones de software preliminar, el análisis estadístico toma como fundamento exclusivo las anotaciones médicas confirmadas:
@@ -278,7 +279,7 @@ Para asegurar que los hallazgos reflejen con fidelidad el criterio clínico y no
 \begin{table}[htbp]
 \centering
 \small
-\renewcommand{\arraystretch}{1.12}
+\renewcommand{\arraystretch}{1.10}
 \begin{tabularx}{\textwidth}{@{} X rrrr @{}}
 \toprule
 \textbf{Centro Hospitalario} & \textbf{Total Registros} & \textbf{Con Médico} & \textbf{Sin Médico} & \textbf{\% Cobertura} \\
@@ -300,20 +301,78 @@ Al contrastar estos conteos locales con el artículo formal de HEEDB en \textit{
     \item \textbf{Massachusetts General Hospital (MGH)}: Coincidencia del 99.99998\% ($10{,}608{,}415$ registros frente a $10{,}608{,}417$ reportados, y exactamente los mismos $1{,}818{,}247$ pacientes únicos; la diferencia de 2 archivos responde a cabeceras ilegibles en descarga).
 \end{itemize}
 
-\subsection{Prevalencia de las 12 Condiciones Cardíacas Seleccionadas}
-Para este análisis se seleccionaron 12 condiciones frecuentes y ampliamente estudiadas en la literatura médica~\cite{alday2020cinc,koscova2024}. Para facilitar su comprensión e interpretación clínica, se agruparon en tres categorías funcionales:
-\begin{enumerate}
-    \item \textbf{Ritmo de base y frecuencia}: Identifican el marcapasos y la velocidad cardíaca (ritmo sinusal normal, bradicardia $<60$~lpm, taquicardia $>100$~lpm, fibrilación auricular, flúter auricular y taquicardia auricular).
-    \item \textbf{Trastornos de conducción (bloqueos)}: Describen demoras o bloqueos en la propagación del impulso eléctrico (bloqueos de rama derecha o izquierda, y bloqueos auriculoventriculares de primer y tercer grado).
-    \item \textbf{Latidos prematuros (extrasístoles)}: Describen latidos anticipados que interrumpen el ritmo regular, originados en los ventrículos (PVC) o en las aurículas (PAC).
-\end{enumerate}
+\subsection{Perfil Demográfico y Diversidad Poblacional (Cohortes MGH y Emory)}
+El desarrollo de clasificadores diagnósticos clínicamente equitativos exige auditar exhaustivamente la composición sociodemográfica del universo de estudio. HEEDB consolida una cohorte masiva de \textbf{2,167,795 pacientes únicos} y \textbf{11,607,259 trazados de ECG}, articulando dos sistemas hospitalarios académicos con perfiles complementarios: Massachusetts General Hospital (MGH) en Boston y Emory University Hospital (EUH) en Atlanta. Para preservar la privacidad bajo la norma \textit{Safe Harbor} de HIPAA, las fechas presentan un desplazamiento temporal aleatorio uniforme individualizado ($\pm 365$ días) y las edades iguales o superiores a 90 años se registran de forma fija en 90 años.
 \newpage
 
-% ==================== PÁGINA 5: TABLA 2 (PREVALENCIAS 12 CONDICIONES) ====================
+% ==================== PÁGINA 5: TABLA 2 (PERFIL DEMOGRÁFICO) ====================
+El Cuadro~\ref{tab:demografia} detalla la estructura demográfica, diversidad racial y estratificación etaria integral de ambas instituciones de acuerdo con los metadatos de admisión hospitalaria:
+
+\begin{table}[H]
+\centering
+\small
+\renewcommand{\arraystretch}{0.90}
+\setlength{\tabcolsep}{4.5pt}
+\begin{tabularx}{\textwidth}{@{} X rrr r @{}}
+\toprule
+\textbf{Variable Demográfica / Clínica} & \textbf{Emory ($N=350\text{k}$)} & \textbf{MGH ($N=1.82\text{M}$)} & \textbf{Total HEEDB} & \textbf{\% / Referencia} \\
+\midrule
+\multicolumn{5}{@{}l}{\textit{Dimensión de la Cohorte y Seguimiento Longitudinal}} \\
+Pacientes únicos (\texttt{BDSPPatientID}) & 349,548 & 1,818,247 & \textbf{2,167,795} & Cohorte consolidada \\
+Registros de ECG (10~s, 12 derivaciones) & 998,844 & 10,608,415 & \textbf{11,607,259} & 100.0\% de trazados \\
+Estudios por paciente (media) & 2.86 & 5.83 & \textbf{5.35} & Trazados/sujeto \\
+\midrule
+\multicolumn{5}{@{}l}{\textit{Distribución por Sexo (Pacientes Únicos)}} \\
+Femenino & 182,509 (52.2\%) & 928,510 (51.2\%) & 1,111,019 & 51.38\% \\
+Masculino & 166,821 (47.7\%) & 886,155 (48.8\%) & 1,052,976 & 48.57\% \\
+No especificado / Enmascarado & 218 (0.06\%) & 3,582 (0.20\%) & 3,800 & 0.18\% \\
+\midrule
+\multicolumn{5}{@{}l}{\textit{Diversidad Racial y Origen Étnico (Pacientes Únicos)}} \\
+Blanca / Caucásica & 191,431 (55.6\%) & 1,291,671 (71.0\%) & 1,483,102 & 68.52\% \\
+Negra / Afroamericana & 108,779 (31.6\%) & 120,207 (6.6\%) & 228,986 & 10.58\% \\
+Asiática & 7,273 (2.1\%) & 49,748 (2.7\%) & 57,021 & 2.63\% \\
+Otras etnias declaradas & 2,188 (0.6\%) & 8,674 (0.5\%) & 10,862 & 0.50\% \\
+No reportada / Desconocida & 39,877 (11.4\%) & 347,948 (19.1\%) & 387,825 & 17.92\% \\
+Etnia Hispana (registrada en MGH) & -- & 125,268 (6.9\%) & 125,268 & 6.9\% en Boston \\
+\midrule
+\multicolumn{5}{@{}l}{\textit{Estratificación Etaria en Adquisición (Trazados de ECG)}} \\
+Pediátrico ($<18$ años) & 1,688 (0.2\%) & 99,278 (0.9\%) & 100,966 & 0.87\% \\
+Adultos jóvenes [$18$--$40$ años) & 104,970 (10.5\%) & 897,149 (8.5\%) & 1,002,119 & 8.63\% \\
+Adultos medios [$40$--$60$ años) & 311,354 (31.2\%) & 2,268,966 (21.4\%) & 2,580,320 & 22.23\% \\
+Adultos mayores [$60$--$90$ años) & 533,231 (53.4\%) & 3,788,745 (35.7\%) & 4,321,976 & 37.24\% \\
+Longevidad extrema ($\ge 90$ años) & 44,571 (4.5\%) & 1,148,526 (10.8\%) & 1,193,097 & 10.28\% \\
+Edad no disponible / Redactada & 3,030 (0.3\%) & 2,405,753 (22.7\%) & 2,408,783 & 20.75\% \\
+\midrule
+\multicolumn{5}{@{}l}{\textit{Métricas Temporales y Tendencia Central}} \\
+Edad Mediana [RIQ] & 63.4 [51.4--73.1] & 64.4 [52.0--75.0] & 64.2 [51.8--74.8] & Años cumplidos \\
+Ventana temporal de adquisición & 2010--2019 (10~a) & 1980--2022 (42~a) & 1980--2022 & 42 años clínicos \\
+\bottomrule
+\end{tabularx}
+\caption{Perfil demográfico, diversidad racial y distribución etaria de la cohorte HEEDB.}
+\label{tab:demografia}
+\end{table}
+
+\textbf{Hallazgos clave sobre la diversidad y representatividad de la cohorte}:
+\begin{itemize}[topsep=1pt, itemsep=0.5pt, parsep=0pt]
+    \item \textbf{Equilibrio por sexo}: Proporción balanceada (51.4\% femenino vs. 48.6\% masculino), previniendo sesgos de género en la detección arrítmica.
+    \item \textbf{Sinergia racial interhospitalaria}: MGH aporta 71.0\% caucásico y 6.9\% hispano (125,268 sujetos), mientras que Emory aporta 31.6\% afroamericano (vs. 6.6\% en MGH), garantizando representatividad y equidad algorítmica.
+    \item \textbf{Espectro etario y longitudinalidad}: Cobertura desde pediatría (100,966 ECGs) hasta longevidad extrema ($\ge 90$ años, 1.19M ECGs), con 5.35 estudios por paciente promedio.
+\end{itemize}
+\newpage
+
+% ==================== PÁGINA 6: SECCIÓN 4.3 Y TABLA 3 (PREVALENCIAS 12 CONDICIONES) ====================
+\subsection{Prevalencia de las 12 Condiciones Cardíacas Seleccionadas}
+Para este análisis se seleccionaron 12 condiciones frecuentes agrupadas en tres categorías funcionales:
+\begin{enumerate}[topsep=1pt, itemsep=1pt, parsep=0pt]
+    \item \textbf{Ritmo de base y frecuencia}: Identifican el marcapasos y la frecuencia cardíaca (ritmo sinusal normal, bradicardia $<60$~lpm, taquicardia $>100$~lpm, fibrilación auricular, flúter auricular y taquicardia auricular).
+    \item \textbf{Trastornos de conducción (bloqueos)}: Describen demoras en la propagación del impulso eléctrico (bloqueos de rama derecha o izquierda, y bloqueos auriculoventriculares de primer y tercer grado).
+    \item \textbf{Latidos prematuros (extrasístoles)}: Describen latidos anticipados ventriculares (PVC) o auriculares (PAC).
+\end{enumerate}
+
 \begin{table}[htbp]
 \centering
 \small
-\renewcommand{\arraystretch}{1.12}
+\renewcommand{\arraystretch}{1.00}
 \setlength{\tabcolsep}{4.5pt}
 \begin{tabularx}{\textwidth}{@{} c c X rr rr @{}}
 \toprule
@@ -346,15 +405,14 @@ Para este análisis se seleccionaron 12 condiciones frecuentes y ampliamente est
 
 \textbf{Observaciones principales sobre la distribución diagnóstica}:
 \begin{itemize}
-    \item \textbf{Notable coherencia interhospitalaria}: A pesar de corresponder a poblaciones y períodos temporales distintos, las proporciones relativas de cada condición son extraordinariamente similares entre Emory y MGH. Por ejemplo, el bloqueo de rama derecha se sitúa exactamente en 6.0\% en ambas instituciones, la fibrilación auricular oscila entre 7.8\% y 9.2\%, y las extrasístoles ventriculares presentan prevalencias casi idénticas (5.1\% frente a 5.2\%). Esta estabilidad demuestra una alta consistencia epidemiológica en los datos.
-    \item \textbf{Marcado desbalance de clases}: La frecuencia de las etiquetas varía en varios órdenes de magnitud. El ritmo sinusal normal representa la mitad de los estudios ($\approx 51\%$), mientras que alteraciones severas como el bloqueo auriculoventricular completo apenas alcanzan el 0.05\% ($4{,}596$ casos totales en 9.6 millones de exámenes). Este desbalance natural es un factor crítico a considerar al seleccionar las métricas de evaluación del modelo.
+    \item \textbf{Notable coherencia interhospitalaria}: Las proporciones relativas de cada condición son extraordinariamente similares entre Emory y MGH (BRD en 6.0\% en ambas, AFIB entre 7.8\% y 9.2\%, y PVC en 5.1\% frente a 5.2\%), confirmando una alta estabilidad epidemiológica.
+    \item \textbf{Marcado desbalance de clases}: Varía desde ritmo sinusal normal ($\approx 51\%$) hasta bloqueo AV completo (0.05\%, $4{,}596$ casos en 9.6M de exámenes).
 \end{itemize}
 
 \paragraph{Nota aclaratoria sobre el código de Bloqueo de Rama Izquierda (LBBB):}
-En el artículo original de HEEDB~\cite{koscova2024} se asoció por error el código \texttt{410} (que en el catálogo oficial corresponde a bajo voltaje de la onda QRS). Para garantizar la exactitud de este estudio, aquí utilizamos el código oficial verdadero del Bloqueo de Rama Izquierda, que es el \texttt{460} (\texttt{LBBB}). Este código identifica con precisión $289{,}769$ casos reales en la base de datos ($24{,}125$ en Emory y $265{,}644$ en MGH).
+En el preprint de HEEDB~\cite{koscova2024} se asoció por error el código \texttt{410} (bajo voltaje QRS). En este estudio empleamos el código oficial verdadero del Bloqueo de Rama Izquierda: \texttt{460} (\texttt{LBBB}), que identifica con fidelidad $289{,}769$ casos ($24{,}125$ en Emory y $265{,}644$ en MGH).
 \newpage
 
-% ==================== PÁGINA 6: TABLA 3 Y TABLA 4 (COMPLEJIDAD Y RITMO+BLOQUEOS) ====================
 \subsection{Evidencia Empírica de Mezclas Diagnósticas (Naturaleza Multietiqueta)}
 Al examinar las anotaciones de los especialistas, se comprueba de inmediato que la gran mayoría de los electrocardiogramas no contienen un solo diagnóstico aislado, sino combinaciones de varios hallazgos presentes al mismo tiempo.
 
