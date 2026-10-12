@@ -25,6 +25,26 @@ Al conectarte, abre el enlace que muestra AWS y pega el código de autorización
 
 El diagrama muestra una vista resumida del punto de acceso BDSP. Nuestro script descarga únicamente las tablas de `ECG/I0001/` (MGH) y `ECG/I0006/` (Emory). La carpeta `EEG/HEEDB_Metadata/` pertenece a otra sección y no forma parte de la descarga. Los puntos suspensivos y patrones representan contenido resumido; la imagen no es un inventario exhaustivo.
 
+## Arquitectura específica de ECG
+
+![Arquitectura de la sección ECG de HEEDB](arquitectura-ecg-heedb.png)
+
+[Ver o descargar el PNG](arquitectura-ecg-heedb.png).
+
+Las cantidades documentadas en los metadatos de cada fuente son:
+
+| Fuente | Exámenes ECG (`FileName`) | Pacientes (`BDSPPatientID`) |
+|---|---:|---:|
+| MGH (`I0001`) | 10.608.417 | 1.818.247 |
+| Emory (`I0006`) | 1.061.598 | 349.548 |
+| **Suma por fuente** | **11.670.015** | **2.167.795** |
+
+La suma de pacientes no representa una deduplicación entre hospitales. Un
+paciente puede tener varios exámenes ECG. `FileName` relaciona los metadatos
+con los diagnósticos 12SL y el registro WFDB; `BDSPPatientID` relaciona al
+paciente con los códigos ICD. Las señales WFDB no se descargan con este
+repositorio.
+
 ## Archivos descargados
 
 Cada hospital conserva las carpetas del origen en S3:
