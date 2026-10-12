@@ -1,0 +1,617 @@
+\documentclass[11pt,a4paper]{article}
+
+% --- Paquetes de configuración básica y tipografía ---
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-nodecimaldot]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath,amsfonts,amssymb}
+\usepackage[margin=2.2cm, top=2.4cm, bottom=2.4cm, headheight=22pt]{geometry}
+
+% --- Tablas y diseño editorial ---
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{caption}
+
+% --- Paleta de colores sobria e institucional ---
+\definecolor{primarynavy}{RGB}{15, 34, 64}      % Azul marino institucional
+\definecolor{secondaryblue}{RGB}{28, 80, 145}   % Azul secundario elegante
+\definecolor{neutraldark}{RGB}{30, 41, 59}      % Gris pizarra para texto
+\definecolor{bordergray}{RGB}{203, 213, 225}    % Gris para líneas divisorias
+
+% --- Configuración de encabezados y pies de página ---
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\color{gray!80!black}\textit{Arquitectura de Datos y Distribución de Arritmias en HEEDB}}
+\fancyhead[R]{\small\color{secondaryblue}\textbf{Seminario de Grado}}
+\fancyfoot[L]{\footnotesize\color{gray!70!black}Análisis Exploratorio y Metadatos de ECG (v1.1)}
+\fancyfoot[R]{\small\bfseries\color{primarynavy}\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+\renewcommand{\headrule}{\hbox to\headwidth{\color{secondaryblue!40}\leaders\hrule height \headrulewidth\hfill}}
+\renewcommand{\footrule}{\hbox to\headwidth{\color{bordergray}\leaders\hrule height \footrulewidth\hfill}}
+
+% --- Tipografía de secciones con titlesec ---
+\titleformat{\section}
+  {\large\bfseries\color{primarynavy}}
+  {\thesection.}{0.5em}{}
+  [\vspace{1pt}\color{secondaryblue!30}\hrule height 0.6pt]
+
+\titleformat{\subsection}
+  {\normalsize\bfseries\color{secondaryblue}}
+  {\thesubsection}{0.5em}{}
+
+\titleformat{\subsubsection}
+  {\small\bfseries\color{primarynavy!90}}
+  {\thesubsubsection}{0.5em}{}
+
+\titlespacing*{\section}{0pt}{10pt plus 2pt minus 2pt}{4pt plus 1pt minus 1pt}
+\titlespacing*{\subsection}{0pt}{8pt plus 1pt minus 1pt}{3pt plus 1pt minus 1pt}
+\titlespacing*{\subsubsection}{0pt}{6pt plus 1pt minus 1pt}{2pt plus 1pt minus 1pt}
+
+% --- Ajuste de espaciado en listas ---
+\setlist[itemize]{topsep=2pt, itemsep=1.5pt, parsep=0pt, leftmargin=1.4em}
+\setlist[enumerate]{topsep=2pt, itemsep=1.5pt, parsep=0pt, leftmargin=1.4em}
+
+% --- Formato de leyendas de tablas y figuras ---
+\captionsetup{
+  font={small},
+  labelfont={bf,color=primarynavy},
+  skip=5pt,
+  justification=centering
+}
+
+% --- Gráficos TikZ ---
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning, fit, backgrounds, calc, shadows}
+
+% --- Hipervínculos ---
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=secondaryblue,
+    citecolor=secondaryblue,
+    urlcolor=secondaryblue
+}
+
+\title{\textbf{\LARGE Arquitectura Relacional y Análisis Estadístico de Metadatos de ECG en HEEDB}\\[0.25cm]
+\large Descripción de Archivos, Modelo Entidad-Relación y Distribución de Arritmias}
+\author{\textbf{Documentación Técnica de Datos y Análisis Exploratorio}}
+\date{Octubre de 2026}
+
+\begin{document}
+
+% ==================== PÁGINA 1: PORTADA, RESUMEN E ÍNDICE ====================
+\maketitle
+
+\begin{abstract}
+Este documento presenta la arquitectura relacional y el análisis exploratorio de metadatos de la base de datos \textit{Harvard-Emory ECG Database} (HEEDB), un repositorio clínico de escala masiva que reúne más de 11.6 millones de electrocardiogramas (ECG) de 12 derivaciones provenientes del \textit{Massachusetts General Hospital} (MGH) y de \textit{Emory Healthcare}. El trabajo se estructura en tres componentes clave:
+\begin{itemize}[topsep=2pt, itemsep=1.5pt, parsep=0pt]
+    \item \textbf{Arquitectura Relacional y Catálogo de Datos}: Formalización de las tablas principales, claves de enlace e integridad referencial en un modelo Entidad-Relación modular para la trazabilidad completa del paciente.
+    \item \textbf{Evidencia Estadística y Enfoque Multietiqueta}: Análisis de prevalencias sobre 9.6 millones de estudios con supervisión médica, demostrando que el 98.6\% presenta diagnósticos compuestos y justificando el modelado multietiqueta.
+    \item \textbf{Ingeniería de Señales, IA y Viabilidad Computacional}: Solución a la disparidad de muestreo mediante filtrado antialiasing a 250~Hz, aseguramiento de calidad asistido por IA y una estrategia escalonada (piloto de 100,000 trazos y carga por demanda).
+\end{itemize}
+\end{abstract}
+
+\vspace{0.3cm}
+\setcounter{tocdepth}{1}
+\tableofcontents
+\newpage
+
+% ==================== PÁGINA 2: SECCIONES 1 Y 2 (DESCRIPCIÓN Y ARCHIVOS) ====================
+\section{Descripción del Conjunto de Datos y Organización de Archivos}
+
+La base de datos HEEDB reúne trazados de electrocardiografía recopilados durante la atención médica cotidiana en dos centros hospitalarios universitarios de Estados Unidos. Los registros se encuentran alojados en Amazon Web Services (AWS S3) dentro de la plataforma abierta BDSP (\textit{Brain Data Science Platform}):
+\begin{itemize}
+    \item \textbf{MGH (I0001)}: 10,608,415 trazados de ECG pertenecientes a 1,818,247 pacientes, adquiridos entre los años 1980 y 2022.
+    \item \textbf{Emory (I0006)}: 998,844 trazados de ECG pertenecientes a 349,548 pacientes, adquiridos entre los años 2010 y 2019.
+\end{itemize}
+
+En cada institución, los datos se estructuran en tres carpetas principales con metadatos tabulares (\texttt{metadata/}, \texttt{12SL\_diagnoses/} e \texttt{ICD\_codes/}) y un repositorio con las señales fisiológicas binarias en formato estándar WFDB.
+
+\section{Catálogo y Función de Cada Archivo}
+
+A continuación se detalla la función técnica, las claves de enlace y el contenido de cada archivo en el repositorio:
+
+\paragraph{1. \texttt{metadata.csv} (Datos Demográficos y Contexto del Estudio):}
+Centraliza los datos demográficos del paciente y las circunstancias de cada registro médico. Su clave primaria (\texttt{PK}) es \texttt{FileName} (la ruta única del trazo en S3) y su clave foránea (\texttt{FK}) es \texttt{BDSPPatientID}, estableciendo una relación de uno a muchos ($1:N$). Incluye variables de sexo, raza (\texttt{PatientRace}), fecha y hora de adquisición (\texttt{ECGAcquisitionTime}) y la edad del sujeto (\texttt{AgeAtAcquisition}, almacenada en días; para expresarla en años se divide entre 365.25).
+
+\paragraph{2. \texttt{diagnoses\_acquisition.csv} (Diagnósticos en Adquisición y Criterio Médico):}
+Almacena los diagnósticos asignados en el momento exacto del examen ($1:1$ con \texttt{metadata.csv}). Contiene los códigos producidos por el software de adquisición (\texttt{codes\_software}), las etiquetas revisadas y confirmadas por el médico especialista o cardiólogo (\texttt{codes\_physician}, que constituyen el patrón de referencia clínico definitivo) y el índice de concordancia \texttt{jaccard\_index}.
+
+\paragraph{3. \texttt{diagnoses\_v24.csv} (Diagnósticos Reprocesados Homogéneos):}
+Proporciona los diagnósticos resultantes de reprocesar todos los trazados bajo la misma versión 24 del algoritmo GE Marquette 12SL ($1:0..1$ con \texttt{metadata.csv}). Esta tabla permite comparar exámenes tomados en distintas épocas bajo un software unificado, neutralizando variaciones por versiones históricas de firmware (cobertura: 98.7\% en MGH y 97.5\% en Emory).
+
+\paragraph{4. \texttt{diagnoses\_dictionary.csv} (Diccionario Ontológico Maestro):}
+Funciona como el catálogo maestro de traducción para 505 conceptos médicos estandarizados. Su clave primaria (\texttt{PK}) es el código numérico entero (\texttt{codes}). Proporciona la sigla clínica (\texttt{acronym}, como \texttt{AFIB}, \texttt{NSR} o \texttt{PVC}) y la descripción textual completa (\texttt{diagnoses}) para interpretar con precisión los números de las tablas.
+
+\paragraph{5. \texttt{icd9\_codes.csv} e \texttt{icd10\_codes.csv} (Diagnósticos Hospitalarios):}
+Registran los diagnósticos de la historia clínica hospitalaria codificados bajo los estándares CIE-9 y CIE-10, asociados mediante \texttt{BDSPPatientID} y la fecha \texttt{RECORDED\_DT}. Describen la condición general del paciente en el hospital y no dependen de la señal de un ECG individual.
+
+\paragraph{6. Archivos Físicos WFDB en S3 (Señales de 12 Derivaciones):}
+Cada estudio físico está integrado por dos archivos complementarios: un encabezado de texto plano (\texttt{.hea}) con la frecuencia de muestreo ($f_s = 250$ o $500$ Hz) y las constantes de calibración, y una matriz binaria con los 10 segundos continuos de señal en las 12 derivaciones estándar (\texttt{.mat} en MGH y \texttt{.dat} en Emory).
+\newpage
+
+% ==================== PÁGINA 3: SECCIÓN 3 (DIAGRAMA ER) ====================
+\section{Modelo Entidad-Relación de los Datos}
+
+El diseño relacional de HEEDB está pensado para desacoplar los datos permanentes del paciente de los múltiples exámenes que acumula a lo largo del tiempo. El siguiente diagrama ilustra la arquitectura de datos agrupada por dominios funcionales:
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+    scale=0.90, transform shape,
+    boxPatient/.style={
+        rectangle, rounded corners=3pt, thick,
+        draw=blue!70!black, fill=blue!6,
+        text width=4.3cm, font=\small, inner sep=6pt
+    },
+    boxStudy/.style={
+        rectangle, rounded corners=3pt, thick,
+        draw=teal!70!black, fill=teal!6,
+        text width=4.3cm, font=\small, inner sep=6pt
+    },
+    boxDiag/.style={
+        rectangle, rounded corners=3pt, thick,
+        draw=orange!80!black, fill=orange!6,
+        text width=4.3cm, font=\small, inner sep=6pt
+    },
+    boxDict/.style={
+        rectangle, rounded corners=3pt, thick,
+        draw=purple!70!black, fill=purple!6,
+        text width=4.3cm, font=\small, inner sep=6pt
+    },
+    rel/.style={-{Stealth[length=2.5mm]}, very thick, draw=gray!75!black},
+    reldash/.style={-{Stealth[length=2.5mm]}, thick, dashed, draw=purple!75!black},
+    card/.style={font=\scriptsize\bfseries, fill=white, inner sep=1.5pt, text=black}
+]
+
+% ==================== COLUMNA 1: PACIENTE E HISTORIA CLÍNICA ====================
+\node[boxPatient] (patient) {
+    \centering \textbf{\textcolor{blue!80!black}{PACIENTE}} \par
+    \noindent\rule{\textwidth}{0.5pt}\par
+    \raggedright
+    \textcolor{red!70!black}{\textbf{PK}} \texttt{BDSPPatientID} \\
+    \texttt{PatientRace} \\
+    \texttt{Sex} \\
+    \texttt{DateOfBirth} \\
+    \texttt{DateOfDeath}
+};
+
+\node[boxPatient, below=2.4cm of patient] (icd) {
+    \centering \textbf{\textcolor{blue!80!black}{DIAGNÓSTICOS CIE (ICD)}} \par
+    \noindent\rule{\textwidth}{0.5pt}\par
+    \raggedright
+    \textcolor{green!50!black}{\textit{FK}} \texttt{BDSPPatientID} \\
+    \texttt{RECORDED\_DT} \\
+    \texttt{DIAGNOSIS\_ICD\_CD} \\
+    \texttt{DIAGNOSIS\_DESC}
+};
+
+% ==================== COLUMNA 2: REGISTRO ECG Y SEÑAL FÍSICA ====================
+\node[boxStudy, right=1.8cm of patient] (ecg) {
+    \centering \textbf{\textcolor{teal!80!black}{REGISTRO\_ECG}} \par
+    \noindent\rule{\textwidth}{0.5pt}\par
+    \raggedright
+    \textcolor{red!70!black}{\textbf{PK}} \texttt{FileName} \\
+    \texttt{FileID} \\
+    \textcolor{green!50!black}{\textit{FK}} \texttt{BDSPPatientID} \\
+    \texttt{ECGAcquisitionTime} \\
+    \texttt{AgeAtAcquisition}
+};
+
+\node[boxStudy, above=1.6cm of ecg] (wfdb) {
+    \centering \textbf{\textcolor{teal!80!black}{SEÑAL\_WFDB (S3)}} \par
+    \noindent\rule{\textwidth}{0.5pt}\par
+    \raggedright
+    \textcolor{red!70!black}{\textbf{PK}} \texttt{Path (.hea/.mat)} \\
+    \texttt{Frecuencia ($f_s$)} \\
+    \texttt{12 Derivaciones} \\
+    \texttt{Longitud: 10 segundos}
+};
+
+\node[boxDiag, below=2.4cm of ecg] (acq) {
+    \centering \textbf{\textcolor{orange!80!black}{DIAG.\ ADQUISICIÓN}} \par
+    \noindent\rule{\textwidth}{0.5pt}\par
+    \raggedright
+    \textcolor{red!70!black}{\textbf{PK, FK}} \texttt{FileName} \\
+    \texttt{codes\_software} \\
+    \texttt{codes\_physician} \\
+    \texttt{jaccard\_index}
+};
+
+% ==================== COLUMNA 3: REPROCESADO V24 Y DICCIONARIO ====================
+\node[boxDiag, right=1.8cm of ecg] (v24) {
+    \centering \textbf{\textcolor{orange!80!black}{DIAGNÓSTICO\_V24}} \par
+    \noindent\rule{\textwidth}{0.5pt}\par
+    \raggedright
+    \textcolor{red!70!black}{\textbf{PK, FK}} \texttt{FileName} \\
+    \texttt{codes (v24 homogéneo)}
+};
+
+\node[boxDict, below=2.4cm of v24] (dict) {
+    \centering \textbf{\textcolor{purple!80!black}{DICCIONARIO\_12SL}} \par
+    \noindent\rule{\textwidth}{0.5pt}\par
+    \raggedright
+    \textcolor{red!70!black}{\textbf{PK}} \texttt{codes} \\
+    \texttt{acronym} \\
+    \texttt{diagnoses}
+};
+
+% ==================== RELACIONES Y CARDINALIDADES ====================
+\draw[rel] (patient) -- node[above, card] {1 a N} (ecg);
+\draw[rel] (patient) -- node[right, card] {1 a N} (icd);
+\draw[rel] (ecg) -- node[right, card] {1 a 1} (wfdb);
+\draw[rel] (ecg) -- node[right, card] {1 a 1} (acq);
+\draw[rel] (ecg) -- node[above, card] {1 a 0..1} (v24);
+
+\draw[reldash] (acq) -- node[above, card] {M a N} (dict);
+\draw[reldash] (v24) -- node[right, card] {M a N} (dict);
+
+\end{tikzpicture}
+\caption{Diagrama Entidad-Relación de HEEDB. Muestra la jerarquía modular desde el paciente y sus registros de señal física hasta las capas de anotación médica, algorítmica y el catálogo de traducción ontológica.}
+\label{fig:er_diagram}
+\end{figure}
+
+Como refleja el diagrama, un mismo paciente acumula diversos trazados a lo largo de los años. Cada examen enlaza su señal física con la metadata demográfica y con dos fuentes diagnósticas independientes: las etiquetas del cardiólogo (\texttt{codes\_physician}) y la versión homogénea algorítmica (\texttt{diagnoses\_v24.csv}), ambas interpretables mediante el catálogo ontológico unificado.
+\newpage
+
+% ==================== PÁGINA 4: SECCIÓN 4.1 Y TABLA 1 (COBERTURA Y CONCORDANCIA) ====================
+\section{Resumen Estadístico: Arritmias Identificadas por Hospital}
+
+\subsection{Origen de los Datos y Criterio de Selección Médica}
+Para asegurar que los hallazgos reflejen con fidelidad el criterio clínico y no predicciones de software preliminar, el análisis estadístico toma como fundamento exclusivo las anotaciones médicas confirmadas:
+\begin{itemize}
+    \item \textbf{Fuente primaria}: Se analizó el campo \texttt{codes\_physician} de \nolinkurl{diagnoses_acquisition.csv}, que almacena el diagnóstico validado por cardiólogos o médicos especialistas durante la atención.
+    \item \textbf{Universo de estudio}: Se consideraron únicamente los estudios con supervisión médica documentada. Como detalla el Cuadro~\ref{tab:cobertura}, esto abarca 998,168 exámenes en Emory (99.93\%) y 8,608,018 en MGH (81.14\%), consolidando un conjunto validado de \textbf{9,606,186 trazados}. Los estudios sin sobrelectura humana se excluyeron del cálculo para proteger la pureza del estándar de referencia.
+    \item \textbf{Decodificación ontológica}: Cada código se tradujo a su nombre clínico oficial mediante el catálogo maestro \nolinkurl{diagnoses_dictionary.csv}.
+\end{itemize}
+
+\begin{table}[htbp]
+\centering
+\small
+\renewcommand{\arraystretch}{1.12}
+\begin{tabularx}{\textwidth}{@{} X rrrr @{}}
+\toprule
+\textbf{Centro Hospitalario} & \textbf{Total Registros} & \textbf{Con Médico} & \textbf{Sin Médico} & \textbf{\% Cobertura} \\
+\midrule
+\textbf{Emory (I0006)} & 998,844 & 998,168 & 676 & \textbf{99.93\%} \\
+\textbf{MGH (I0001)}   & 10,608,415 & 8,608,018 & 2,000,397 & \textbf{81.14\%} \\
+\midrule
+\textbf{Total HEEDB}   & \textbf{11,607,259} & \textbf{9,606,186} & \textbf{2,001,073} & \textbf{82.76\%} \\
+\bottomrule
+\end{tabularx}
+\caption{Cobertura de validación experta por cardiólogo/médico (\texttt{codes\_physician}).}
+\label{tab:cobertura}
+\end{table}
+
+\paragraph{Concordancia con la publicación en \textit{Nature Scientific Data} (2026):}
+Al contrastar estos conteos locales con el artículo formal de HEEDB en \textit{Scientific Data} (Koscova et~al.~\cite{koscova2024}), se comprueba una concordancia exacta:
+\begin{itemize}
+    \item \textbf{Emory University Hospital (EUH)}: Coincidencia del 100.000\% ($998{,}844$ trazados y $349{,}548$ pacientes únicos en la base local, idénticos a los reportados en la publicación formal).
+    \item \textbf{Massachusetts General Hospital (MGH)}: Coincidencia del 99.99998\% ($10{,}608{,}415$ registros frente a $10{,}608{,}417$ reportados, y exactamente los mismos $1{,}818{,}247$ pacientes únicos; la diferencia de 2 archivos responde a cabeceras ilegibles en descarga).
+\end{itemize}
+
+\subsection{Prevalencia de las 12 Condiciones Cardíacas Seleccionadas}
+Para este análisis se seleccionaron 12 condiciones frecuentes y ampliamente estudiadas en la literatura médica~\cite{alday2020cinc,koscova2024}. Para facilitar su comprensión e interpretación clínica, se agruparon en tres categorías funcionales:
+\begin{enumerate}
+    \item \textbf{Ritmo de base y frecuencia}: Identifican el marcapasos y la velocidad cardíaca (ritmo sinusal normal, bradicardia $<60$~lpm, taquicardia $>100$~lpm, fibrilación auricular, flúter auricular y taquicardia auricular).
+    \item \textbf{Trastornos de conducción (bloqueos)}: Describen demoras o bloqueos en la propagación del impulso eléctrico (bloqueos de rama derecha o izquierda, y bloqueos auriculoventriculares de primer y tercer grado).
+    \item \textbf{Latidos prematuros (extrasístoles)}: Describen latidos anticipados que interrumpen el ritmo regular, originados en los ventrículos (PVC) o en las aurículas (PAC).
+\end{enumerate}
+\newpage
+
+% ==================== PÁGINA 5: TABLA 2 (PREVALENCIAS 12 CONDICIONES) ====================
+\begin{table}[htbp]
+\centering
+\small
+\renewcommand{\arraystretch}{1.12}
+\setlength{\tabcolsep}{4.5pt}
+\begin{tabularx}{\textwidth}{@{} c c X rr rr @{}}
+\toprule
+\multirow{2}{*}{\textbf{Cód.}} & \multirow{2}{*}{\textbf{Acr.}} & \multirow{2}{*}{\textbf{Diagnóstico Clínico}} & \multicolumn{2}{c}{\textbf{Emory ($N=998\text{k}$)}} & \multicolumn{2}{c}{\textbf{MGH ($N=8.6\text{M}$)}} \\
+\cmidrule(lr){4-5} \cmidrule(lr){6-7}
+& & & \textbf{Casos} & \textbf{\%} & \textbf{Casos} & \textbf{\%} \\
+\midrule
+\multicolumn{7}{@{}l}{\textbf{Grupo 1: Ritmo de Base y Frecuencia Cardíaca}} \\
+\texttt{22}  & \texttt{NSR}   & Ritmo Sinusal Normal           & 481,323 & 48.22\% & 4,432,168 & 51.49\% \\
+\texttt{21}  & \texttt{SBRAD} & Bradicardia Sinusal ($<60$ lpm)& 135,277 & 13.55\% &   975,406 & 11.33\% \\
+\texttt{23}  & \texttt{STACH} & Taquicardia Sinusal ($>100$ lpm)& 76,072 &  7.62\% &   782,974 &  9.10\% \\
+\texttt{161} & \texttt{AFIB}  & Fibrilación Auricular          &  78,015 &  7.82\% &   792,342 &  9.20\% \\
+\texttt{162} & \texttt{FLUT}  & Flúter Auricular               &  17,432 &  1.75\% &   130,930 &  1.52\% \\
+\texttt{164} & \texttt{ATAC}  & Taquicardia Auricular / SVT    &   1,853 &  0.19\% &    24,189 &  0.28\% \\
+\midrule
+\multicolumn{7}{@{}l}{\textbf{Grupo 2: Trastornos de Conducción (Bloqueos)}} \\
+\texttt{440} & \texttt{RBBB}  & Bloqueo de Rama Derecha (BRD)  &  60,383 &  6.05\% &   517,610 &  6.01\% \\
+\texttt{460} & \texttt{LBBB}  & Bloqueo de Rama Izquierda (BRI)&  24,125 &  2.42\% &   265,644 &  3.09\% \\
+\texttt{101} & \texttt{1AVB}  & Bloqueo AV de 1er Grado        &  70,022 &  7.02\% &   363,766 &  4.23\% \\
+\texttt{106} & \texttt{CHB}   & Bloqueo AV Completo (3er Grado)&     624 &  0.06\% &     3,972 &  0.05\% \\
+\midrule
+\multicolumn{7}{@{}l}{\textbf{Grupo 3: Latidos Prematuros (Extrasístoles)}} \\
+\texttt{231} & \texttt{PVC}   & Extrasístoles Ventriculares    &  51,242 &  5.13\% &   451,720 &  5.25\% \\
+\texttt{222} & \texttt{PAC}   & Extrasístoles Auriculares      &  36,636 &  3.67\% &   315,116 &  3.66\% \\
+\bottomrule
+\end{tabularx}
+\caption{Prevalencia clínica de 12 alteraciones frecuentes agrupadas por categoría funcional.}
+\label{tab:arritmias}
+\end{table}
+
+\textbf{Observaciones principales sobre la distribución diagnóstica}:
+\begin{itemize}
+    \item \textbf{Notable coherencia interhospitalaria}: A pesar de corresponder a poblaciones y períodos temporales distintos, las proporciones relativas de cada condición son extraordinariamente similares entre Emory y MGH. Por ejemplo, el bloqueo de rama derecha se sitúa exactamente en 6.0\% en ambas instituciones, la fibrilación auricular oscila entre 7.8\% y 9.2\%, y las extrasístoles ventriculares presentan prevalencias casi idénticas (5.1\% frente a 5.2\%). Esta estabilidad demuestra una alta consistencia epidemiológica en los datos.
+    \item \textbf{Marcado desbalance de clases}: La frecuencia de las etiquetas varía en varios órdenes de magnitud. El ritmo sinusal normal representa la mitad de los estudios ($\approx 51\%$), mientras que alteraciones severas como el bloqueo auriculoventricular completo apenas alcanzan el 0.05\% ($4{,}596$ casos totales en 9.6 millones de exámenes). Este desbalance natural es un factor crítico a considerar al seleccionar las métricas de evaluación del modelo.
+\end{itemize}
+
+\paragraph{Nota aclaratoria sobre el código de Bloqueo de Rama Izquierda (LBBB):}
+En el artículo original de HEEDB~\cite{koscova2024} se asoció por error el código \texttt{410} (que en el catálogo oficial corresponde a bajo voltaje de la onda QRS). Para garantizar la exactitud de este estudio, aquí utilizamos el código oficial verdadero del Bloqueo de Rama Izquierda, que es el \texttt{460} (\texttt{LBBB}). Este código identifica con precisión $289{,}769$ casos reales en la base de datos ($24{,}125$ en Emory y $265{,}644$ en MGH).
+\newpage
+
+% ==================== PÁGINA 6: TABLA 3 Y TABLA 4 (COMPLEJIDAD Y RITMO+BLOQUEOS) ====================
+\subsection{Evidencia Empírica de Mezclas Diagnósticas (Naturaleza Multietiqueta)}
+Al examinar las anotaciones de los especialistas, se comprueba de inmediato que la gran mayoría de los electrocardiogramas no contienen un solo diagnóstico aislado, sino combinaciones de varios hallazgos presentes al mismo tiempo.
+
+\subsubsection{Cantidad de Códigos Asignados por Trazado}
+El Cuadro~\ref{tab:code_dist} desglosa el número de códigos de diagnóstico asignados a cada estudio en el campo \texttt{codes\_physician}:
+
+\begin{table}[htbp]
+\centering
+\small
+\renewcommand{\arraystretch}{1.12}
+\begin{tabularx}{\textwidth}{@{} X rrrr @{}}
+\toprule
+\multirow{2}{*}{\textbf{Complejidad del Trazado (Nº Códigos)}} & \multicolumn{2}{c}{\textbf{Emory (998,168)}} & \multicolumn{2}{c}{\textbf{MGH (8,608,018)}} \\
+\cmidrule(lr){2-3} \cmidrule(lr){4-5}
+& \textbf{Registros} & \textbf{\%} & \textbf{Registros} & \textbf{\%} \\
+\midrule
+1 código (Diagnóstico único aislado)       &    13,682 &  1.37\% &    98,081 &  1.14\% \\
+2 códigos                                  &    43,685 &  4.38\% &   242,448 &  2.82\% \\
+3 códigos                                  &   159,321 & 15.96\% &   555,183 &  6.45\% \\
+4 códigos                                  &   185,633 & 18.60\% &   528,948 &  6.14\% \\
+5 códigos                                  &   147,052 & 14.73\% &   950,318 & 11.04\% \\
+Más de 5 códigos (Diagnóstico compuesto)   &   448,795 & 44.96\% & 6,233,040 & 72.41\% \\
+\midrule
+\textbf{Total con $\ge 2$ códigos (Multietiqueta)} & \textbf{984,486} & \textbf{98.63\%} & \textbf{8,509,937} & \textbf{98.86\%} \\
+\bottomrule
+\end{tabularx}
+\caption{Distribución de la cantidad de códigos de diagnóstico por trazado.}
+\label{tab:code_dist}
+\end{table}
+
+\textbf{Hallazgo principal}: En ambos hospitales, \textbf{más del 98.6\% de los trazados reciben dos o más etiquetas simultáneas}, mientras que apenas el 1.2\% presenta un único código. En MGH, de hecho, más del 72\% de los estudios acumula más de cinco etiquetas. Esta evidencia descarta que el diagnóstico de un ECG pueda formularse como una elección exclusiva.
+
+\subsubsection{Combinaciones Diagnósticas más Frecuentes}
+Para ilustrar cómo conviven estas alteraciones en los pacientes reales, se cuantificaron las asociaciones concurrentes más comunes:
+
+\paragraph{A. Ritmo de Base junto con Bloqueos de Conducción:}
+Describe a pacientes en quienes coexisten el ritmo principal del corazón (como ritmo sinusal o fibrilación auricular) y un trastorno en la conducción ventricular (bloqueo de rama derecha o izquierda). Como indica el Cuadro~\ref{tab:coocurrencia_bloqueos}, esta concurrencia ocurre en cientos de miles de trazados, demostrando la simultaneidad de ambos procesos.
+
+\begin{table}[htbp]
+\centering
+\small
+\renewcommand{\arraystretch}{1.12}
+\setlength{\tabcolsep}{5pt}
+\begin{tabularx}{\textwidth}{@{} ll X rr rr @{}}
+\toprule
+\multirow{2}{*}{\textbf{Ritmo Base}} & \multirow{2}{*}{\textbf{Bloqueo}} & \multirow{2}{*}{\textbf{Descripción Clínica}} & \multicolumn{2}{c}{\textbf{Emory}} & \multicolumn{2}{c}{\textbf{MGH}} \\
+\cmidrule(lr){4-5} \cmidrule(lr){6-7}
+& & & \textbf{Casos} & \textbf{\%} & \textbf{Casos} & \textbf{\%} \\
+\midrule
+\texttt{NSR} (22)  & \texttt{RBBB} (440) & Sinusal con Bloqueo de Rama Derecha         & 23,358 & 2.34\% & 217,921 & 2.53\% \\
+\texttt{NSR} (22)  & \texttt{LBBB} (460) & Sinusal con Bloqueo de Rama Izquierda       &  9,334 & 0.94\% & 117,283 & 1.36\% \\
+\texttt{NSR} (22)  & \texttt{1AVB} (101) & Sinusal con Bloqueo AV de 1er Grado         &  1,692 & 0.17\% &  70,259 & 0.82\% \\
+\texttt{AFIB} (161)& \texttt{RBBB} (440) & Fibrilación Auricular con Bloqueo Rama Der. &  7,392 & 0.74\% &  81,873 & 0.95\% \\
+\bottomrule
+\end{tabularx}
+\caption{Concurrencia entre ritmo de base y bloqueos de conducción.}
+\label{tab:coocurrencia_bloqueos}
+\end{table}
+\newpage
+
+% ==================== PÁGINA 7: TABLAS 5 Y 6 Y SECCIÓN 4.4 ====================
+\paragraph{B. Ritmo de Base junto con Latidos Prematuros (Extrasístoles):}
+Se produce cuando, sobre el ritmo cardíaco principal, irrumpen latidos aislados que se anticipan al ciclo regular. El Cuadro~\ref{tab:coocurrencia_ectopias} confirma que las extrasístoles ventriculares y auriculares conviven con regularidad tanto en pacientes con ritmo sinusal como en aquellos con fibrilación auricular.
+
+\begin{table}[htbp]
+\centering
+\small
+\renewcommand{\arraystretch}{1.12}
+\setlength{\tabcolsep}{5pt}
+\begin{tabularx}{\textwidth}{@{} ll X rr rr @{}}
+\toprule
+\multirow{2}{*}{\textbf{Ritmo Base}} & \multirow{2}{*}{\textbf{Ectopia}} & \multirow{2}{*}{\textbf{Descripción Clínica}} & \multicolumn{2}{c}{\textbf{Emory}} & \multicolumn{2}{c}{\textbf{MGH}} \\
+\cmidrule(lr){4-5} \cmidrule(lr){6-7}
+& & & \textbf{Casos} & \textbf{\%} & \textbf{Casos} & \textbf{\%} \\
+\midrule
+\texttt{NSR} (22)  & \texttt{PVC} (231)  & Sinusal con Extrasístoles Ventriculares     &  3,823 & 0.38\% & 128,714 & 1.50\% \\
+\texttt{NSR} (22)  & \texttt{PAC} (222)  & Sinusal con Extrasístoles Auriculares       &  2,264 & 0.23\% &  82,157 & 0.95\% \\
+\texttt{AFIB} (161)& \texttt{PVC} (231)  & Fibrilación Auricular con Extrasístoles Vent.&  1,498 & 0.15\% &  29,908 & 0.35\% \\
+\bottomrule
+\end{tabularx}
+\caption{Concurrencia entre ritmo de base y latidos anticipados (extrasístoles).}
+\label{tab:coocurrencia_ectopias}
+\end{table}
+
+\paragraph{C. Coexistencia de Dos Alteraciones Simultáneas:}
+Corresponde a la presencia combinada de dos anomalías estructurales o de conducción en un mismo paciente. Como detalla el Cuadro~\ref{tab:coocurrencia_duales}, es frecuente observar un bloqueo auriculoventricular de primer grado junto a un bloqueo de rama derecha, o la presencia paralela de extrasístoles auriculares y ventriculares.
+
+\begin{table}[htbp]
+\centering
+\small
+\renewcommand{\arraystretch}{1.12}
+\setlength{\tabcolsep}{5pt}
+\begin{tabularx}{\textwidth}{@{} ll X rr rr @{}}
+\toprule
+\multirow{2}{*}{\textbf{Condición 1}} & \multirow{2}{*}{\textbf{Condición 2}} & \multirow{2}{*}{\textbf{Descripción Clínica}} & \multicolumn{2}{c}{\textbf{Emory}} & \multicolumn{2}{c}{\textbf{MGH}} \\
+\cmidrule(lr){4-5} \cmidrule(lr){6-7}
+& & & \textbf{Casos} & \textbf{\%} & \textbf{Casos} & \textbf{\%} \\
+\midrule
+\texttt{1AVB} (101)& \texttt{RBBB} (440) & Bloqueo AV 1er Grado con Bloqueo Rama Der.  &  8,032 & 0.80\% &  44,808 & 0.52\% \\
+\texttt{PAC} (222) & \texttt{PVC} (231)  & Doble Ectopia Simultánea (Auricular y Vent.)&  3,930 & 0.39\% &  38,926 & 0.45\% \\
+\bottomrule
+\end{tabularx}
+\caption{Coexistencia de dos alteraciones adicionales en el mismo estudio.}
+\label{tab:coocurrencia_duales}
+\end{table}
+
+\subsection{Justificación Práctica del Enfoque Multietiqueta}
+Las asociaciones clínicas documentadas en las tablas anteriores demuestran por qué los diagnósticos de un electrocardiograma no pueden tratarse como opciones mutuamente excluyentes:
+\begin{itemize}
+    \item \textbf{Carácter multidimensional}: Un trazado evalúa simultáneamente el marcapasos principal (ritmo), la integridad de las vías de conducción (bloqueos) y la irritabilidad ventricular o auricular (extrasístoles). Cada componente describe una faceta fisiológica distinta.
+    \item \textbf{No exclusión mutua}: Diagnosticar un bloqueo de conducción no descarta la presencia de ritmo sinusal, ni padecer fibrilación auricular impide presentar latidos ectópicos prematuros.
+\end{itemize}
+
+Si este problema se formulara como una clasificación tradicional de clase única (\textit{multiclase}), el modelo se vería forzado a elegir un único diagnóstico por estudio y descartar arbitrariamente las demás condiciones presentes en la señal. En cambio, una arquitectura \textbf{multietiqueta} (\textit{multi-label}) permite predecir la presencia o ausencia de cada patología de forma independiente, ajustándose con total naturalidad a la realidad clínica~\cite{alday2020cinc,koscova2024}.
+\newpage
+
+% ==================== PÁGINA 8: SECCIÓN 5.1 Y 5.2 (NORMALIZACIÓN Y CRITERIOS) ====================
+\section{Consideraciones de Normalización, Viabilidad y Procesamiento}
+
+Se analizan tres aspectos técnicos y metodológicos indispensables antes de abordar el modelado automático:
+
+\subsection{Normalización Técnica: Frecuencias de Muestreo y Remuestreo Antialiasing}
+Ambas instituciones proporcionan electrocardiogramas de 12 derivaciones con duración de 10 segundos y calibración de $1{,}000\text{ ADC/mV}$. Sin embargo, presentan disparidades técnicas que exigen estandarización previa:
+\begin{itemize}[topsep=1pt, itemsep=1pt, parsep=0pt]
+    \item \textbf{Formatos binarios dispares}: MGH utiliza MATLAB (\texttt{.mat}) y Emory binarios planos (\texttt{.dat}), ambos con encabezados ASCII (\texttt{.hea}) leídos directamente mediante \texttt{wfdb-python}.
+    \item \textbf{¿Por qué los modelos exigen la misma dimensión?}: Una red neuronal o clasificador computacional posee una capa de entrada fija con un número invariable de conexiones o pesos matemáticos (análogo a una tabla de base de datos con columnas fijas). No puede procesar datos de longitud variable en un mismo lote. Como resume el Cuadro~\ref{tab:remuestreo}, a 500~Hz un trazo entrega matrices de $12 \times 5{,}000$ puntos ($60{,}000$ números) y a 250~Hz entrega $12 \times 2{,}500$ ($30{,}000$ números). Mezclarlos sin homologación genera un error insalvable de dimensiones (\textit{shape mismatch}).
+    \item \textbf{Teorema de Nyquist y Filtro Antialiasing}: Nyquist establece que para capturar fielmente una onda sin perder información basta con medir al menos al doble de su frecuencia máxima ($f_s \ge 2 \cdot f_{\max}$). Como el ancho de banda clínico del ECG llega hasta los 125~Hz, una tasa de 250~Hz cumple con exactitud este criterio ($2 \times 125 = 250\text{ Hz}$), reteniendo todo el valor diagnóstico. Al reducir de 500 a 250~Hz no se puede simplemente borrar una de cada dos muestras; de hacerlo, los ruidos rápidos se ``disfrazarían'' como ondas lentas artificiales (\textit{aliasing}, similar al efecto óptico en que las ruedas de un auto parecen girar al revés en video), inventando arritmias falsas. El \textbf{filtro antialiasing} limpia previamente todo ruido superior a 125~Hz antes de reducir puntos, preservando la forma real intacta.
+\end{itemize}
+
+\begin{table}[htbp]
+\centering
+\small
+\renewcommand{\arraystretch}{1.18}
+\begin{tabularx}{\textwidth}{@{} l c rr X @{}}
+\toprule
+\textbf{Tasa Original} & \textbf{Puntos / Derivación} & \textbf{\% MGH} & \textbf{\% Emory} & \textbf{Problema de Tamaño y Solución Técnica} \\
+\midrule
+\textbf{500 Hz} & 5,000 muestras & 53\% & 78\% & Matriz grande ($12 \times 5{,}000$). No cabe en entradas para 2,500 puntos. \\
+\textbf{250 Hz} & 2,500 muestras & 47\% & 22\% & Matriz base ($12 \times 2{,}500$). Resolución clínica estándar y óptima. \\
+\midrule
+\textbf{Remuestreo 500$\rightarrow$250} & 2,500 muestras & 100\% & 100\% & El filtro antialiasing limpia el ruido rápido antes de reducir puntos, igualando todas las matrices a $12 \times 2{,}500$ sin deformar la onda. \\
+\bottomrule
+\end{tabularx}
+\caption{Homologación de tamaños de señal y justificación práctica del filtro antialiasing.}
+\label{tab:remuestreo}
+\end{table}
+
+\subsection{Compatibilidad de Criterios de Anotación Médica}
+Aunque ambos centros comparten el algoritmo GE Marquette 12SL y el catálogo maestro de 505 términos (\nolinkurl{diagnoses_dictionary.csv}), compartir el vocabulario no asegura criterios idénticos:
+\begin{itemize}[topsep=1pt, itemsep=1pt, parsep=0pt]
+    \item \textbf{Diferencias de sobrelectura}: En Emory la validación por cardiólogo cubrió el 99.93\%, mientras que en MGH la supervisión médica documentada alcanza el 81.14\%.
+    \item \textbf{Origen del diagnóstico}: En MGH, parte de las etiquetas se extrajo de notas libres mediante procesamiento de lenguaje natural y concordancia de cadenas, introduciendo variabilidad inexistente en la codificación directa de Emory.
+    \item \textbf{Prudencia metodológica}: Conviene verificar la consistencia clínica mediante pruebas cruzadas entre hospitales antes de asumir una equivalencia diagnóstica total sin sesgos institucionales.
+\end{itemize}
+\newpage
+
+% ==================== PÁGINA 9: SECCIÓN 5.3, 5.4 Y 5.5 (VIABILIDAD, LIMPIEZA Y SÍNTESIS) ====================
+\subsection{Evaluación de Viabilidad Computacional y Requerimientos de Memoria}
+Cargar los registros validados en memoria RAM enfrenta una barrera física: cada examen ocupa $\approx 120\text{ KB}$ ($10\text{ s} \times 12\text{ der} \times 500\text{ Hz} \times 2\text{ B}$). Como resume el Cuadro~\ref{tab:viabilidad}, cargar los 9.6 millones de trazados a la vez exigiría más de \textbf{1.15 Terabytes de RAM}, colapsando cualquier equipo convencional (16 a 64 GB de RAM).
+
+\begin{table}[htbp]
+\centering
+\small
+\renewcommand{\arraystretch}{1.12}
+\begin{tabularx}{\textwidth}{@{} l r c X @{}}
+\toprule
+\textbf{Escenario} & \textbf{Trazados} & \textbf{RAM Estimada} & \textbf{Factibilidad y Solución Técnica} \\
+\midrule
+\textbf{HEEDB Completo}        & 11,607,259 & $\approx 1.39$ TB & Inviable en RAM local; requiere almacenamiento distribuido. \\
+\textbf{Universo Validado}     &  9,606,186 & $\approx 1.15$ TB & Inviable en RAM física; exige lectura por demanda (\textit{lazy loading}). \\
+\textbf{Piloto Experimental}   &   100,000 & $\approx 12$ GB  & \textbf{Totalmente viable} en estaciones estándar (16--32 GB de RAM). \\
+\textbf{Enfoque Tabular}       &  9,606,186 & $\approx 480$ MB & \textbf{Óptima}; almacenable en cualquier equipo personal. \\
+\bottomrule
+\end{tabularx}
+\caption{Consumo estimado de memoria y viabilidad técnica según escenario.}
+\label{tab:viabilidad}
+\end{table}
+
+\textbf{Justificación y ruta metodológica recomendada}:
+Ante este obstáculo de memoria, se justifica una ruta de tres fases progresivas:
+\begin{enumerate}[topsep=1pt, itemsep=1pt, parsep=0pt]
+    \item \textbf{Fase 1: Prototipo piloto (100,000 trazos $\approx$ 12 GB)}: Permite programar y depurar los algoritmos en una computadora convencional (16--32 GB de RAM) sin incurrir en costos de clústeres o servidores en la nube.
+    \item \textbf{Fase 2: Modelado tabular ligero (480 MB)}: En vez de procesar ondas continuas pesadas, se entrenan modelos rápidos sobre las medidas que el electrocardiógrafo ya calculó (como la frecuencia cardíaca y duración de ondas en \nolinkurl{metadata.csv}). Ocupa solo 480~MB y da una línea base diagnóstica inmediata.
+    \item \textbf{Fase 3: Escalado masivo con lectura por demanda}: Con el flujo de trabajo ya validado, se escala al total de señales leyendo lotes pequeños del disco a la GPU (\textit{lazy loading}), evitando saturar la memoria RAM.
+\end{enumerate}
+
+\subsection{Pautas Estructurales para la Limpieza de Datos}
+Para la preparación rigurosa de los registros se deben contemplar cuatro pautas técnicas:
+\begin{itemize}[topsep=1pt, itemsep=1pt, parsep=0pt]
+    \item \textbf{Agrupación estricta por paciente}: Debido a que cada paciente acumula múltiples estudios, la partición (entrenamiento, validación y prueba) debe agruparse obligatoriamente por \texttt{BDSPPatientID} para evitar fuga de información (\textit{data leakage}).
+    \item \textbf{Saneamiento de rutas en MGH}: En \texttt{diagnoses\_v24.csv} de MGH, la columna \texttt{FileName} incluye prefijos (\texttt{./}) y sufijos (\texttt{.hea}, \texttt{\textbackslash n}) que deben removerse antes de los cruces con \texttt{metadata.csv}.
+    \item \textbf{Homologación del identificador}: En Emory, \texttt{BDSPPatientID} suele leerse como decimal (\texttt{179020000.0}) en Pandas; debe convertirse a texto o entero para mantener coherencia con MGH.
+    \item \textbf{Filtrado por códigos técnicos}: El sistema 12SL asigna códigos específicos para artefactos (como \texttt{1672} inversión de electrodos o \texttt{1673} baja calidad), útiles para filtrar trazos corruptos antes del entrenamiento~\cite{koscova2024}.
+\end{itemize}
+
+\subsection{Síntesis del Análisis Exploratorio y Próximos Pasos}
+La exploración de HEEDB confirma un repositorio de enorme valor clínico. Las tres conclusiones directas son:
+\begin{itemize}[topsep=1pt, itemsep=1pt, parsep=0pt]
+    \item Las prevalencias de las 12 alteraciones son muy consistentes entre Emory y MGH.
+    \item El 98.6\% de diagnósticos compuestos hace indispensable una formulación multietiqueta.
+    \item El remuestreo antialiasing a 250 Hz y el piloto de 100,000 trazos garantizan la viabilidad técnica y computacional del proyecto previo al escalado masivo.
+\end{itemize}
+\newpage
+
+% ==================== PÁGINA 10: SECCIÓN 6 (DICCIONARIO DE CONCEPTOS CLAVE) ====================
+\section{Diccionario de Conceptos Clave (Glosario Técnico y Clínico)}
+
+Para facilitar la comprensión del documento a evaluadores y estudiantes de Ingeniería de Sistemas, a continuación se definen los términos fundamentales organizados en tres dominios:
+
+\subsection{Dominio Electrofisiológico y Señales Biomédicas}
+\begin{itemize}[topsep=1pt, itemsep=1pt, parsep=0pt]
+    \item \textbf{ECG de 12 Derivaciones}: Prueba electrofisiológica que registra la actividad bioeléctrica cardíaca desde 12 perspectivas espaciales simultáneas (6 frontales y 6 precordiales).
+    \item \textbf{Frecuencia de Muestreo ($f_s$)}: Número de medidas capturadas por segundo (en Hertz, Hz). En HEEDB coexisten registros a 250~Hz (2,500 datos en 10 s) y 500~Hz (5,000 datos en 10 s).
+    \item \textbf{Teorema de Nyquist}: Principio que establece que para registrar una onda continua sin perder información se debe muestrear al menos al doble de su frecuencia máxima ($f_s \ge 2 \cdot f_{\max}$). En ECG ($125\text{ Hz}$), 250~Hz es la tasa óptima exacta.
+    \item \textbf{Incompatibilidad de Tamaño (\textit{Shape Mismatch})}: Error en algoritmos cuando los datos de entrada difieren en longitud; los modelos exigen matrices de tamaño fijo.
+    \item \textbf{Remuestreo Digital}: Proceso para igualar la cantidad de puntos de todos los exámenes (reduciendo 500~Hz a 250~Hz) para obtener dimensiones homogéneas.
+    \item \textbf{Efecto Aliasing (Distorsión por Submuestreo)}: Fenómeno donde ruidos rápidos se confunden y generan ondas falsas lentas al reducir puntos (similar a las ruedas que parecen girar al revés en video).
+    \item \textbf{Filtro Antialiasing (Limpiador Previo)}: Algoritmo digital que suaviza y elimina ruidos rápidos antes de descartar muestras, asegurando que la onda cardíaca conserve su forma real.
+    \item \textbf{Complejo QRS e Intervalos (PR, QT)}: Componentes de cada latido: el \textbf{QRS} es el pico alto y puntiagudo que bombea la sangre al cuerpo, mientras que los \textbf{intervalos PR y QT} miden en milisegundos los tiempos de viaje eléctrico y recarga del corazón.
+\end{itemize}
+
+\subsection{Dominio de Aprendizaje Automático e Inteligencia Artificial}
+\begin{itemize}[topsep=1pt, itemsep=1pt, parsep=0pt]
+    \item \textbf{Homogeneidad Dimensional}: Requisito donde todas las matrices de entrada deben compartir la misma forma fija ($12 \times 2{,}500$), ya que las capas del modelo poseen un número rígido de conexiones matemáticas.
+    \item \textbf{Clasificación Multietiqueta (\textit{Multi-label})}: Paradigma donde una instancia (un ECG) puede pertenecer simultáneamente a varias clases no excluyentes (ej. ritmo sinusal y bloqueo de rama).
+    \item \textbf{Clasificación Multiclase (\textit{Multi-class})}: Paradigma tradicional donde cada instancia solo puede pertenecer a una única clase excluyente (inadecuado para diagnósticos cardíacos compuestos).
+    \item \textbf{Desbalance de Clases}: Distribución asimétrica donde algunas clases son muy abundantes (ritmo sinusal $\sim 51\%$) y otras sumamente escasas (bloqueo AV completo al 0.05\%).
+    \item \textbf{Fuga de Datos (\textit{Data Leakage})}: Contaminación involuntaria del conjunto de prueba con información de entrenamiento (por ejemplo, al no agrupar los estudios de un mismo paciente).
+    \item \textbf{Sobrelectura Médica (\textit{Physician Over-reading})}: Proceso de revisión donde un cardiólogo o especialista humano audita, corrige y valida el informe emitido por el electrocardiógrafo.
+\end{itemize}
+
+\subsection{Dominio de Arquitectura e Ingeniería de Datos}
+\begin{itemize}[topsep=1pt, itemsep=1pt, parsep=0pt]
+    \item \textbf{Formato WFDB (\textit{WaveForm DataBase})}: Estándar biomédico de PhysioNet compuesto por un encabezado de texto plano (\texttt{.hea}) y una matriz binaria de señal (\texttt{.mat} o \texttt{.dat}).
+    \item \textbf{Algoritmo GE Marquette 12SL}: Software hospitalario integrado en electrocardiógrafos para medir intervalos y sugerir diagnósticos automáticos a partir del trazado.
+    \item \textbf{Ontología Diagnóstica}: Catálogo estructurado de 505 términos numéricos estandarizados utilizado para traducir los códigos numéricos a diagnósticos clínicos comprensibles.
+    \item \textbf{Carga Bajo Demanda (\textit{Lazy Loading})}: Estrategia que lee archivos del disco solo al ingresar el lote a la GPU, evitando saturar la memoria RAM.
+\end{itemize}
+\newpage
+
+% ==================== PÁGINA 11: SECCIÓN 7 (REFERENCIAS BIBLIOGRÁFICAS SOLITA) ====================
+\vspace*{2.0cm}
+\renewcommand{\refname}{\LARGE 7. Referencias Bibliográficas}
+\begin{thebibliography}{9}
+\addcontentsline{toc}{section}{7. Referencias Bibliográficas}
+
+\bibitem{koscova2024}
+Z.~Koscova, Q.~Li, C.~Robichaux, V.~Moura~Junior, M.~Ghanta, A.~Gupta, J.~Rosand, A.~D.~Aguirre, E.~Reinertsen, S.~Song, S.~Hong, D.~E.~Albert, J.~Xue, A.~Parekh, R.~Sameni, M.~A.~Reyna, M.~B.~Westover y G.~D.~Clifford,
+``The Harvard-Emory ECG Database,''
+\textit{Scientific Data}, vol.~13, no.~1, art.~516, 2026. DOI: \url{https://doi.org/10.1038/s41597-026-06861-9}
+
+\vspace{0.8cm}
+\bibitem{alday2020cinc}
+E.~A.~P.~Alday, A.~Gu, A.~J.~Shah, C.~Robichaux, A.~I.~Wong, C.~Liu, F.~Liu, A.~B.~Rad, A.~Elola, S.~Seyedi, Q.~Li, R.~Agrawal, M.~A.~Reyna y G.~D.~Clifford,
+``Classification of 12-lead ECGs: the PhysioNet/Computing in Cardiology Challenge 2020,''
+\textit{Physiological Measurement}, vol.~41, no.~12, art.~124003, 2020. DOI: \url{https://doi.org/10.1088/1361-6579/abc960}
+
+\end{thebibliography}
+
+\end{document}
